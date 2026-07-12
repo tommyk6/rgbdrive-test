@@ -189,3 +189,9 @@ table td ol {
 .w-50 {
   width: 50%;
 }
+.site-version::after {
+  content: " - ver 2.0.1 (12/07/2026)";
+  font-size: 12px;       /* Optional: makes the version slightly smaller/discreet */
+  opacity: 0.7;          /* Optional: tones down the brightness slightly */
+  margin-left: 5px;      /* Puts a small space after "All rights reserved." */
+}
