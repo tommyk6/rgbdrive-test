@@ -2,8 +2,9 @@
 .SYNOPSIS
     Deploys website updates from 'dev' branch to the live GitHub repository ('live' remote / main branch).
 .DESCRIPTION
-    Ensures 'RGBDRIVE-V2-OVERVIEW.md' and local development files are excluded from the public GitHub repository.
-    Syncs website files to 'main', commits, pushes to GitHub ('live') and Gitea ('origin'), then returns to 'dev'.
+    Syncs website files in 'docs/' and 'README.md' from 'dev' to 'main',
+    strictly excluding internal operational documentation ('DEV-DOCS.md').
+    Pushes 'main' to GitHub ('live') and Gitea ('origin'), then returns to 'dev'.
 #>
 param(
     [string]$Message = "Publish website update"
@@ -31,13 +32,17 @@ Write-Host "`n>>> Starting Deployment: dev -> main (GitHub live) <<<" -Foregroun
 # 3. Switch to main
 git checkout main
 
-# 4. Copy all website files from dev into main
+# 4. Clean root on main and mirror exact state from dev
+Get-ChildItem -Path . -Exclude ".git" | Remove-Item -Recurse -Force
 git checkout dev -- .
 
-# 5. Remove internal development overview so it NEVER exists on main/GitHub
-if (Test-Path "RGBDRIVE-V2-OVERVIEW.md") {
-    git reset HEAD "RGBDRIVE-V2-OVERVIEW.md" 2>$null | Out-Null
-    Remove-Item "RGBDRIVE-V2-OVERVIEW.md" -Force
+# 5. Remove internal operational documentation so it NEVER exists on main/GitHub
+$internalDocs = @("DEV-DOCS.md", "RGBDRIVE-V2-OVERVIEW.md", "PROJECT-OPERATIONS-LOG.md")
+foreach ($doc in $internalDocs) {
+    if (Test-Path $doc) {
+        git reset HEAD $doc 2>$null | Out-Null
+        Remove-Item $doc -Force
+    }
 }
 
 # 6. Check if there are changes to deploy
